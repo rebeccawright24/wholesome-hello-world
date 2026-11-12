@@ -21,6 +21,14 @@ main {
   height: auto;
 }
 
+.spider {
+  position: absolute;
+  top: 0;
+  right: 16px;
+  width: 60px;
+  height: auto;
+}
+
 h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
