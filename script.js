@@ -493,16 +493,18 @@ function makeCode() {
 
 // Something went wrong before the game started: go back to the menu.
 function backToMenu(message) {
-  if (peer) peer.destroy();
+  const oldPeer = peer;
   peer = null;
   conn = null;
   mode = "solo";
   myIndex = 0;
+  if (oldPeer) oldPeer.destroy();
   setMenuEnabled(true);
   setStatus(message);
 }
 
 function friendLeft() {
+  if (mode === "solo") return; // we've already gone back to the menu
   if (!playing) {
     backToMenu("The connection closed. Try again?");
     return;
@@ -523,18 +525,30 @@ function hostGame() {
   peer = new Peer(ROOM_PREFIX + code);
 
   peer.on("open", function () {
-    setStatus("Your room code is <strong>" + code + "</strong><br>Send it to a friend and keep this page open. Waiting for them to join…");
+    setStatus("Your room code is <strong>" + code + "</strong><br>Send it to a friend. Keep this page open and on screen while you wait for them to join…");
+  });
+
+  // If our link to the PeerJS "receptionist" drops while waiting, reconnect.
+  peer.on("disconnected", function () {
+    if (!playing && peer && !peer.destroyed) peer.reconnect();
   });
 
   peer.on("connection", function (connection) {
-    if (conn) { connection.close(); return; } // only one friend at a time
+    // Only one friend at a time. But if an earlier attempt got stuck, swap it for this new one.
+    if (conn && conn.open) { connection.close(); return; }
+    if (conn) conn.close();
     conn = connection;
-    conn.on("open", function () {
+    connection.on("open", function () {
+      if (conn !== connection || playing) return;
       conn.send({ t: "start" });
       startOnline();
     });
-    conn.on("data", onMessage);
-    conn.on("close", friendLeft);
+    connection.on("data", onMessage);
+    connection.on("close", function () {
+      if (conn !== connection) return;
+      if (playing) friendLeft();
+      else conn = null; // a half-finished attempt gave up: keep the room open for another try
+    });
   });
 
   peer.on("error", function (error) {
@@ -557,19 +571,38 @@ function joinGame() {
   mode = "guest";
   myIndex = 1;
   setMenuEnabled(false);
-  setStatus("Connecting to room " + code + "…");
+  setStatus("Connecting to room " + code + "…<br>Step 1 of 2: reaching the game server");
 
   peer = new Peer();
 
+  // Give up after 15 seconds, and say which step it got stuck on.
+  let stepReached = 1;
+  const giveUp = setTimeout(function () {
+    if (playing || mode !== "guest") return;
+    if (stepReached === 1) {
+      backToMenu("Couldn't reach the game server. This network might be blocking it. Try a different Wi-Fi or mobile data.");
+    } else {
+      backToMenu("Found room " + code + " but couldn't connect to it. Check the host's page is still open and on screen, then try again.");
+    }
+  }, 15000);
+
   peer.on("open", function () {
+    stepReached = 2;
+    setStatus("Connecting to room " + code + "…<br>Step 2 of 2: connecting to your friend");
     conn = peer.connect(ROOM_PREFIX + code, { reliable: true });
+    conn.on("open", function () { clearTimeout(giveUp); });
     conn.on("data", onMessage);
     conn.on("close", friendLeft);
+    conn.on("error", function (error) {
+      clearTimeout(giveUp);
+      backToMenu("The connection had a problem (" + error.type + "). Try again?");
+    });
   });
 
   peer.on("error", function (error) {
+    clearTimeout(giveUp);
     if (error.type === "peer-unavailable") {
-      backToMenu("Couldn't find a game with the code " + code + ". Check the code and try again.");
+      backToMenu("Couldn't find a game with the code " + code + ". Check the code, and that the host's page is still open.");
     } else {
       backToMenu("Couldn't connect (" + error.type + "). Try again?");
     }
