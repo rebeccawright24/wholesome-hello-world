@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 62" role="img" aria-label="A little cobweb">
+  <g fill="none" stroke="#a8a8a8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- spokes, spreading out from the middle of the top edge -->
+    <line x1="60" y1="0" x2="2" y2="0"/>
+    <line x1="60" y1="0" x2="10" y2="29"/>
+    <line x1="60" y1="0" x2="31" y2="50"/>
+    <line x1="60" y1="0" x2="60" y2="58"/>
+    <line x1="60" y1="0" x2="89" y2="50"/>
+    <line x1="60" y1="0" x2="110" y2="29"/>
+    <line x1="60" y1="0" x2="118" y2="0"/>
+    <!-- rings, slightly saggy like a real web -->
+    <path d="M47 0 Q51 9 49 6.5 Q54 12 53.5 11 Q60 14 60 13 Q66 12 66.5 11 Q70 9 71 6.5 Q72 3 73 0"/>
+    <path d="M34 0 Q38 12 37.5 13 Q46 23 47 22.5 Q60 28 60 26 Q73 26 73 22.5 Q83 18 82.5 13 Q86 6 86 0"/>
+    <path d="M20 0 Q25 18 25.5 19.5 Q38 33 40 34.5 Q60 43 60 40 Q80 42 80 34.5 Q96 26 94.5 19.5 Q99 9 100 0"/>
+    <path d="M7 0 Q12 24 13.5 26.5 Q30 44 33 46.5 Q60 58 60 54 Q88 57 87 46.5 Q108 33 106.5 26.5 Q113 12 113 0"/>
+  </g>
+</svg>

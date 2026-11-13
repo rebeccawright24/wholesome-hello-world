@@ -7,8 +7,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="spider" id="spider">
-    <img src="images/spider.svg" alt="A cute smiling spider hanging from a thread">
+  <div class="spider-layer" id="playfield">
+    <img class="web" src="images/web.svg" alt="">
+    <div class="thread" id="thread"></div>
+    <img class="spider" id="spider" src="images/spider.svg" alt="A cute smiling spider swinging on a thread">
   </div>
   <main>
     <img src="images/sprout.svg" alt="A smiling sun above a little green sprout" class="hero">
@@ -16,8 +18,16 @@
     <p>This is my very first website. I'm Rebecca, and I'm learning to build things.</p>
     <button id="wave">Say hello back</button>
     <p id="reply"></p>
-    <p class="hint">Tip: use the arrow keys on your keyboard to move the spider 🕷️</p>
+    <button id="start" class="start">Start game 🕷️</button>
+    <p class="hint">Swing the spider to catch the flies! Use the arrow keys or the buttons: ◀ ▶ swings, ▲ ▼ climbs the thread.</p>
   </main>
+  <div class="score" id="score" aria-live="polite">🪰 Flies caught: <span id="count">0</span></div>
+  <div class="controls" aria-label="Spider controls">
+    <button class="up" data-dir="up" aria-label="Climb up">▲</button>
+    <button class="left" data-dir="left" aria-label="Walk left">◀</button>
+    <button class="down" data-dir="down" aria-label="Climb down">▼</button>
+    <button class="right" data-dir="right" aria-label="Walk right">▶</button>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
