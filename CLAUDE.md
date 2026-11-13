@@ -26,3 +26,4 @@
 
 ## Things I've asked you to remember
 - Always tell me what to look at in Chrome.
+- Show me one task at a time, and only show the next one when I've finished it.
