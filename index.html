@@ -7,25 +7,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- The game area: the web, the thread, the spider and the flies -->
-  <div class="playfield" id="playfield">
-    <img class="web" src="images/web.svg" alt="">
-    <div class="thread" id="thread"></div>
-    <img class="spider" id="spider" src="images/spider.svg" alt="A cute smiling spider swinging on a thread">
-  </div>
+  <!-- The game area. script.js adds the webs, spiders and flies here. -->
+  <div class="playfield" id="playfield"></div>
 
   <!-- The start screen, shown before the game begins -->
   <main class="start-screen">
     <h1>Catch the Flies! 🕷️</h1>
     <p>Swing the spider to catch all three flies. Every level the flies get faster and the spider gets a little heavier.</p>
-    <button id="start" class="start">Start game</button>
+    <div class="menu" id="menu">
+      <button id="solo" class="start">Play solo</button>
+      <button id="host" class="secondary">Host an online game</button>
+      <div class="join">
+        <input id="code" type="text" placeholder="CODE" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code">
+        <button id="join" class="secondary">Join</button>
+      </div>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
     <p class="hint">◀ ▶ swing &nbsp;·&nbsp; ▲ ▼ climb<br>Use the arrow keys or the buttons on screen.</p>
   </main>
 
-  <!-- Level and score, shown while playing -->
-  <div class="hud" aria-live="polite">
-    Level <span id="level">1</span> &nbsp;·&nbsp; 🪰 <span id="count">0</span>
-  </div>
+  <!-- Level and scores, shown while playing -->
+  <div class="hud" id="hud" aria-live="polite"></div>
 
   <!-- Big messages like "Level 2!" -->
   <div class="banner" id="banner" aria-live="polite"></div>
@@ -38,6 +40,8 @@
     <button class="right" data-dir="right" aria-label="Swing right">▶</button>
   </div>
 
+  <!-- PeerJS: a free library that connects two browsers for online play -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 94 100 64" role="img" aria-label="A cute smiling spider">
+  <!-- legs -->
+  <g fill="none" stroke="#345a73" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M34 108 Q20 96 10 102"/>
+    <path d="M32 116 Q16 112 6 120"/>
+    <path d="M32 124 Q16 128 8 140"/>
+    <path d="M35 131 Q22 142 18 154"/>
+    <path d="M66 108 Q80 96 90 102"/>
+    <path d="M68 116 Q84 112 94 120"/>
+    <path d="M68 124 Q84 128 92 140"/>
+    <path d="M65 131 Q78 142 82 154"/>
+  </g>
+  <!-- body -->
+  <circle cx="50" cy="120" r="22" fill="#3f6f8f"/>
+  <!-- eyes -->
+  <circle cx="42" cy="115" r="7" fill="#fff"/>
+  <circle cx="58" cy="115" r="7" fill="#fff"/>
+  <circle cx="43" cy="116" r="3.5" fill="#1e1a22"/>
+  <circle cx="59" cy="116" r="3.5" fill="#1e1a22"/>
+  <circle cx="44.5" cy="114.5" r="1.2" fill="#fff"/>
+  <circle cx="60.5" cy="114.5" r="1.2" fill="#fff"/>
+  <!-- cheeks -->
+  <circle cx="35" cy="126" r="3.5" fill="#f2a1b3" opacity="0.8"/>
+  <circle cx="65" cy="126" r="3.5" fill="#f2a1b3" opacity="0.8"/>
+  <!-- smile -->
+  <path d="M44 127 Q50 133 56 127" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+</svg>

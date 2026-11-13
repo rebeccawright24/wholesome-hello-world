@@ -62,24 +62,109 @@ button:hover {
   opacity: 0.7;
 }
 
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.secondary {
+  padding: 0.7rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: white;
+  color: #2f3a2f;
+  border: 2px solid #5a8a5a;
+}
+
+.secondary:hover {
+  background: #eef4ee;
+}
+
+.join {
+  display: flex;
+  gap: 8px;
+}
+
+.join input {
+  width: 6.5rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 1.05rem;
+  font-family: inherit;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border: 2px solid #cfd8cf;
+  border-radius: 999px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.status:empty {
+  display: none;
+}
+
+.status {
+  margin: 1rem 0 0 !important;
+  font-size: 0.95rem !important;
+}
+
+.status strong {
+  font-size: 1.3rem;
+  letter-spacing: 0.15em;
+  color: #5a8a5a;
+}
+
 /* ----- The game area ----- */
 
-/* A see-through layer over the whole window. script.js moves everything on it. */
+/* A see-through layer. script.js sets its size and scales it to fit the window,
+   so online players on different screens see the same arena. */
 .playfield {
   position: fixed;
-  inset: 0;
+  left: 0;
+  top: 0;
   overflow: hidden;
   pointer-events: none;
+  transform-origin: 0 0;
   z-index: 1;
 }
 
-/* The little cobweb pinned to the top centre. The thread hangs from the middle of it. */
+/* In online games, show the edges of the shared arena. */
+body.online .playfield {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0 0 18px 18px;
+}
+
+/* A little cobweb. script.js places one at the top of each spider's thread. */
 .web {
   position: absolute;
   top: 0;
-  left: 50%;
+  left: 0;
   width: 120px;
-  transform: translateX(-50%);
+}
+
+/* Online, a small tag shows which spider is yours. */
+.you-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: white;
+  color: #5a8a5a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.hud-icon {
+  width: 22px;
+  vertical-align: middle;
 }
 
 .thread {
