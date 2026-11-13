@@ -21,12 +21,36 @@ main {
   height: auto;
 }
 
+/* The spider hangs near the top-right corner. script.js moves it with the arrow keys. */
 .spider {
   position: absolute;
-  top: 0;
+  top: 70px;
   right: 16px;
   width: 60px;
+  transition: transform 0.12s ease-out;
+}
+
+.spider img {
+  display: block;
+  width: 100%;
   height: auto;
+}
+
+/* The thread: a thin line from the spider up past the top of the page, so it always reaches the "ceiling". */
+.spider::before {
+  content: "";
+  position: absolute;
+  bottom: 60%;
+  left: 50%;
+  width: 1.5px;
+  height: 3000px;
+  background: #9a9a9a;
+}
+
+.hint {
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  opacity: 0.7;
 }
 
 h1 {
