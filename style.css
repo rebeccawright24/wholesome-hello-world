@@ -7,23 +7,65 @@ body {
   background: #f4f1ea;
   color: #2f3a2f;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-main {
-  max-width: 32rem;
+button {
+  border: none;
+  border-radius: 999px;
+  background: #5a8a5a;
+  color: white;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button:hover {
+  background: #476f47;
+}
+
+/* ----- Start screen ----- */
+
+.start-screen {
+  position: relative;
+  z-index: 2;
+  max-width: 26rem;
+  margin: 0 16px;
   padding: 2rem 1.5rem;
   text-align: center;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(47, 58, 47, 0.12);
 }
 
-.hero {
-  width: 160px;
-  max-width: 60%;
-  height: auto;
+.start-screen h1 {
+  font-size: 2.2rem;
+  margin: 0 0 0.75rem;
 }
 
-/* The spider and its thread sit on a see-through layer over the whole window.
-   script.js works out where they are on every frame and moves them. */
-.spider-layer {
+.start-screen p {
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin: 0 0 1.25rem;
+}
+
+.start {
+  padding: 0.9rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.start-screen .hint {
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* ----- The game area ----- */
+
+/* A see-through layer over the whole window. script.js moves everything on it. */
+.playfield {
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -31,12 +73,20 @@ main {
   z-index: 1;
 }
 
+/* The little cobweb pinned to the top centre. The thread hangs from the middle of it. */
+.web {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 120px;
+  transform: translateX(-50%);
+}
+
 .thread {
   position: absolute;
   left: 0;
   top: 0;
   width: 1.5px;
-  height: 110px;
   background: #9a9a9a;
   transform-origin: top center;
 }
@@ -51,26 +101,14 @@ main {
   transform-origin: 50% 40.6%;
 }
 
-/* On-screen arrow buttons, so the spider can be played on a phone too. */
-/* The little cobweb pinned to the top centre. The thread hangs from the middle of it. */
-.web {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 120px;
-  transform: translateX(-50%);
-}
-
-/* Flies buzz around on the same layer as the spider. */
 .fly {
   position: absolute;
   left: 0;
   top: 0;
   width: 34px;
-  height: auto;
 }
 
-.fly-inner {
+.fly img {
   display: block;
   width: 100%;
   animation: buzz 0.18s ease-in-out infinite alternate;
@@ -84,19 +122,33 @@ main {
 /* A little "+1" that floats up when a fly is caught. */
 .pop {
   position: absolute;
-  left: 0;
-  top: 0;
   font-weight: bold;
   color: #5a8a5a;
   animation: pop 0.8s ease-out forwards;
 }
 
 @keyframes pop {
-  from { opacity: 1; translate: -50% -50%; }
-  to   { opacity: 0; translate: -50% -180%; }
+  from { opacity: 1; transform: translate(-50%, -50%); }
+  to   { opacity: 0; transform: translate(-50%, -180%); }
 }
 
-.score {
+/* Confetti for celebrations. Each piece flies out to its own spot (set by script.js). */
+.confetti {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  animation: confetti 1.2s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+
+@keyframes confetti {
+  from { opacity: 1; transform: translate(-50%, -50%) rotate(0); }
+  to   { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--spin)); }
+}
+
+/* ----- Level, score and messages ----- */
+
+.hud {
   display: none;
   position: fixed;
   top: 16px;
@@ -108,31 +160,56 @@ main {
   font-weight: 600;
 }
 
-/* Before the game starts, the arrows and score are hidden. Once it starts, the Start button hides. */
-body.playing .controls { display: grid; }
-body.playing .score { display: block; }
-body.playing .start { display: none; }
+.banner {
+  position: fixed;
+  left: 50%;
+  top: 40%;
+  z-index: 3;
+  padding: 0.8rem 1.4rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 30px rgba(47, 58, 47, 0.15);
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.banner small {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.banner.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* ----- On-screen arrow buttons ----- */
 
 .controls {
+  display: none;
   position: fixed;
   right: 16px;
   bottom: 16px;
   z-index: 2;
-  display: none;
   grid-template-columns: repeat(3, 52px);
   grid-template-rows: repeat(2, 52px);
   gap: 6px;
   touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
 .controls button {
-  margin: 0;
-  padding: 0;
   width: 52px;
   height: 52px;
+  padding: 0;
   border-radius: 14px;
   font-size: 1.2rem;
   background: rgba(90, 138, 90, 0.85);
@@ -148,39 +225,8 @@ body.playing .start { display: none; }
 .controls .down  { grid-column: 2; grid-row: 2; }
 .controls .right { grid-column: 3; grid-row: 2; }
 
-/* Leave room at the bottom so the buttons never cover the words. */
-body {
-  padding-bottom: 130px;
-  box-sizing: border-box;
-}
+/* ----- Before and during the game ----- */
 
-.hint {
-  margin-top: 2rem;
-  font-size: 0.95rem;
-  opacity: 0.7;
-}
-
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-p {
-  font-size: 1.15rem;
-  line-height: 1.6;
-}
-
-button {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 999px;
-  background: #5a8a5a;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #476f47;
-}
+body.playing .start-screen { display: none; }
+body.playing .hud { display: block; }
+body.playing .controls { display: grid; }

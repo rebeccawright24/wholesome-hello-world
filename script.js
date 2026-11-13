@@ -1,32 +1,38 @@
-// When the button is clicked, show a friendly reply under it.
-document.getElementById("wave").addEventListener("click", function () {
-  document.getElementById("reply").textContent = "👋 Hello, Rebecca! Nice to meet you.";
-});
-
 // ---------------------------------------------------------------------------
-// The spider game.
+// Catch the Flies!
 // The spider is a pendulum: a weight on a thread hanging from a web at the top centre.
 // ◀ ▶ pushes the swing (like pumping your legs on a swing). ▲ ▼ climbs the thread.
-// Flies buzz around the page. Touch one with the spider to catch it.
+// Catch all three flies to finish a level. Each level the spider gets heavier
+// and the flies get faster and more erratic. Every 5 flies gets a celebration.
 // ---------------------------------------------------------------------------
 
 const playfield = document.getElementById("playfield");
 const spider = document.getElementById("spider");
 const thread = document.getElementById("thread");
+const levelText = document.getElementById("level");
 const countText = document.getElementById("count");
+const banner = document.getElementById("banner");
 
 // Settings you can play with
 const GRAVITY = 2000;      // how strongly the spider is pulled down
 const AIR = 0.35;          // air resistance: how quickly the swinging dies down
-const SWING_PUSH = 1200;   // how hard ◀ ▶ push the swing
+const SWING_PUSH = 1200;   // how hard ◀ ▶ push the swing (at level 1)
 const CLIMB_SPEED = 160;   // how fast the spider climbs up and down
 const DROP_SPEED = 420;    // how fast the spider drops when the game starts
 const TUCKED_UP = 75;      // thread length before the game starts (just under the web)
 const DROP_TO = 220;       // thread length after the drop
 const SHORTEST = 40;       // shortest the thread can get
-const FLY_COUNT = 3;       // how many flies buzz around at once
-const FLY_SPEED = 90;      // how fast flies fly
+const FLIES_PER_LEVEL = 3;
+const FLY_SPEED = 90;      // how fast flies fly at level 1
 const CATCH_DISTANCE = 30; // how close the spider has to get to catch a fly
+const CELEBRATE_EVERY = 5; // celebrate every this many flies
+
+// How each level gets harder
+function spiderWeight() { return Math.min(1 + 0.2 * (level - 1), 3); }     // heavier = harder to push
+function spiderSize()   { return Math.min(1 + 0.06 * (level - 1), 1.6); }  // grows a little, so you can see it
+function flySpeed()     { return Math.min(FLY_SPEED * (1 + 0.15 * (level - 1)), 260); }
+function flyWobble()    { return Math.min(5 * (1 + 0.35 * (level - 1)), 22); }  // how much they wander
+function flyDarts()     { return Math.min(0.35 * (level - 1), 2.5); }      // sudden turns per second
 
 // Where things are right now
 let threadLength = TUCKED_UP;
@@ -34,6 +40,8 @@ let angle = 0;       // 0 means hanging straight down; positive means swung to t
 let swingSpeed = 0;
 let playing = false;
 let dropping = false;
+let betweenLevels = false;
+let level = 1;
 let score = 0;
 let flies = [];
 
@@ -55,6 +63,8 @@ function spiderPosition() {
   };
 }
 
+// ----- The spider -----
+
 // Move the spider forward by a tiny slice of time (dt, in seconds).
 function updateSpider(dt) {
   // 1. Climbing (or dropping at the start of the game).
@@ -74,9 +84,11 @@ function updateSpider(dt) {
   threadLength = newLength;
 
   // 2. Pendulum physics: gravity pulls the spider back to the middle,
-  //    ◀ ▶ push it sideways, climbing up makes it swing faster
-  //    (like a figure skater pulling their arms in), and air resistance calms it down.
-  const sidewaysPush = playing && !dropping ? (held.right - held.left) * SWING_PUSH : 0;
+  //    ◀ ▶ push it sideways (a heavier spider moves less for the same push),
+  //    climbing up makes it swing faster (like a figure skater pulling their arms in),
+  //    and air resistance calms it down.
+  const pushing = playing && !dropping ? (held.right - held.left) : 0;
+  const sidewaysPush = pushing * SWING_PUSH / spiderWeight();
   const swingChange =
     -(GRAVITY / threadLength) * Math.sin(angle)
     + (sidewaysPush / threadLength) * Math.cos(angle)
@@ -114,10 +126,16 @@ function addFly() {
 
   const element = document.createElement("div");
   element.className = "fly";
-  element.innerHTML = '<img class="fly-inner" src="images/fly.svg" alt="A little fly">';
+  element.innerHTML = '<img src="images/fly.svg" alt="A little fly">';
   playfield.appendChild(element);
 
   flies.push({ x: x, y: y, heading: Math.random() * Math.PI * 2, element: element });
+}
+
+function startLevel() {
+  betweenLevels = false;
+  levelText.textContent = level;
+  for (let i = 0; i < FLIES_PER_LEVEL; i++) addFly();
 }
 
 function updateFlies(dt) {
@@ -126,7 +144,13 @@ function updateFlies(dt) {
 
   flies.forEach(function (fly) {
     // Wander about, changing direction a little at random.
-    fly.heading += (Math.random() * 2 - 1) * 5 * dt;
+    fly.heading += (Math.random() * 2 - 1) * flyWobble() * dt;
+
+    // At higher levels, flies sometimes dart off in a new direction.
+    if (Math.random() < flyDarts() * dt) {
+      const sharpTurn = (Math.PI / 3) + Math.random() * (Math.PI / 2);
+      fly.heading += Math.random() < 0.5 ? sharpTurn : -sharpTurn;
+    }
 
     // If a fly wanders out of reach, turn it back towards the middle.
     if (!insideReach(fly.x, fly.y)) {
@@ -136,26 +160,60 @@ function updateFlies(dt) {
       fly.heading += turn * Math.min(1, 6 * dt);
     }
 
-    fly.x += Math.cos(fly.heading) * FLY_SPEED * dt;
-    fly.y += Math.sin(fly.heading) * FLY_SPEED * dt;
+    fly.x += Math.cos(fly.heading) * flySpeed() * dt;
+    fly.y += Math.sin(fly.heading) * flySpeed() * dt;
+
+    // Fast flies bounce off the edges of the window instead of escaping.
+    const left = 20, right = window.innerWidth - 20, top = 60, bottom = window.innerHeight - 30;
+    if (fly.x < left || fly.x > right) {
+      fly.x = Math.min(Math.max(fly.x, left), right);
+      fly.heading = Math.PI - fly.heading;
+    }
+    if (fly.y < top || fly.y > bottom) {
+      fly.y = Math.min(Math.max(fly.y, top), bottom);
+      fly.heading = -fly.heading;
+    }
   });
 }
 
 function catchFlies() {
   const s = spiderPosition();
+  const reach = CATCH_DISTANCE * spiderSize();
   const caught = flies.filter(function (fly) {
-    return Math.hypot(fly.x - s.x, fly.y - s.y) <= CATCH_DISTANCE;
+    return Math.hypot(fly.x - s.x, fly.y - s.y) <= reach;
   });
+  if (caught.length === 0) return;
 
+  const scoreBefore = score;
   caught.forEach(function (fly) {
     flies.splice(flies.indexOf(fly), 1);
     fly.element.remove();
     score++;
-    countText.textContent = score;
     showPop(fly.x, fly.y);
-    setTimeout(function () { if (playing) addFly(); }, 900); // a new fly arrives soon
   });
+  countText.textContent = score;
+
+  // Did we just reach 5, 10, 15...? And did we just clear the level?
+  const milestone = Math.floor(score / CELEBRATE_EVERY) > Math.floor(scoreBefore / CELEBRATE_EVERY);
+  const levelCleared = flies.length === 0 && !betweenLevels;
+
+  if (milestone) confetti(s.x, s.y);
+
+  if (levelCleared) {
+    betweenLevels = true;
+    level++;
+    if (milestone) {
+      showBanner("🎉 " + score + " flies! 🎉", "Level " + level + ": faster flies, heavier spider");
+    } else {
+      showBanner("Level " + level + "!", "Faster flies, heavier spider");
+    }
+    setTimeout(startLevel, 1500);
+  } else if (milestone) {
+    showBanner("🎉 " + score + " flies! 🎉");
+  }
 }
+
+// ----- Celebrations -----
 
 function showPop(x, y) {
   const pop = document.createElement("div");
@@ -167,6 +225,32 @@ function showPop(x, y) {
   setTimeout(function () { pop.remove(); }, 800);
 }
 
+let bannerTimer;
+function showBanner(message, smallPrint) {
+  banner.innerHTML = message + (smallPrint ? "<small>" + smallPrint + "</small>" : "");
+  banner.classList.add("show");
+  clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(function () { banner.classList.remove("show"); }, 1400);
+}
+
+function confetti(x, y) {
+  const colours = ["#f7cc6b", "#f2a1b3", "#7fb07f", "#8fc3e0", "#c9a3e6"];
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti";
+    const direction = Math.random() * Math.PI * 2;
+    const distance = 60 + Math.random() * 140;
+    piece.style.left = x + "px";
+    piece.style.top = y + "px";
+    piece.style.background = colours[i % colours.length];
+    piece.style.setProperty("--dx", Math.cos(direction) * distance + "px");
+    piece.style.setProperty("--dy", Math.sin(direction) * distance + 60 + "px"); // a little fall
+    piece.style.setProperty("--spin", (Math.random() * 720 - 360) + "deg");
+    playfield.appendChild(piece);
+    setTimeout(function () { piece.remove(); }, 1200);
+  }
+}
+
 // ----- Drawing and the animation loop -----
 
 // Put the thread, spider and flies where they are.
@@ -175,7 +259,7 @@ function draw() {
   thread.style.height = threadLength + "px";
   thread.style.transform = "translateX(" + (anchorX() - 0.75) + "px) rotate(" + (-angle) + "rad)";
   spider.style.transform =
-    "translate(" + s.x + "px, " + s.y + "px) translate(-50%, -40.6%) rotate(" + (-angle) + "rad)";
+    "translate(" + s.x + "px, " + s.y + "px) translate(-50%, -40.6%) rotate(" + (-angle) + "rad) scale(" + spiderSize() + ")";
 
   flies.forEach(function (fly) {
     fly.element.style.transform = "translate(" + fly.x + "px, " + fly.y + "px) translate(-50%, -50%)";
@@ -206,10 +290,11 @@ requestAnimationFrame(frame);
 document.getElementById("start").addEventListener("click", function () {
   playing = true;
   dropping = true;
+  level = 1;
   score = 0;
   countText.textContent = score;
   document.body.classList.add("playing");
-  for (let i = 0; i < FLY_COUNT; i++) addFly();
+  startLevel();
 });
 
 // ----- Controls -----
