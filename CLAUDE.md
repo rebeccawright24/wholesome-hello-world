@@ -3,7 +3,7 @@
 ## About this project
 - My practice project for learning the basics: a tiny Hello World page. It's fine to experiment and break things here.
 - A plain static website: HTML, CSS and a little JavaScript. No frameworks, no npm, no build step.
-- Live at https://<username>.github.io/wholesome-hello-world/. Every push to main publishes it via .github/workflows/deploy.yml.
+- Live at https://rebeccawright24.github.io/wholesome-hello-world/. Every push to main publishes it via .github/workflows/deploy.yml.
 
 ## How to work with me
 - I'm Rebecca, a beginner, and I'm vibe coding: I describe what I want and you write the code.
